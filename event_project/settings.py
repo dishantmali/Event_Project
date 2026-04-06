@@ -147,3 +147,5 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+# The Old Way (Required by the Cloudinary library to prevent the crash)
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
