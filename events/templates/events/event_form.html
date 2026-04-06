@@ -33,46 +33,90 @@
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label class="form-label">Title</label>
-                        <input type="text" name="title" class="form-control" value="{{ event.title|default:'' }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ event.title|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Organizer</label>
+                            <input type="text" name="organizer" class="form-control" value="{{ event.organizer|default:'' }}">
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control">{{ event.description|default:'' }}</textarea>
+                        <textarea name="description" class="form-control" rows="5">{{ event.description|default:'' }}</textarea>
                     </div>
 
+                    <h5 class="mt-4 mb-3">Location Details</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Venue Name</label>
+                            <input type="text" name="venue_name" class="form-control" value="{{ event.venue_name|default:'' }}" placeholder="e.g. Christopher Columbus Park">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" name="city" class="form-control" value="{{ event.city|default:'' }}" placeholder="e.g. Boston">
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label">Location</label>
-                        <input type="text" name="location" class="form-control" value="{{ event.location|default:'' }}">
+                        <label class="form-label">Full Address</label>
+                        <textarea name="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk, Boston, MA 02109, United States">{{ event.full_address|default:'' }}</textarea>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Date & Time</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Start Date</label>
+                            <input type="date" name="date" class="form-control" value="{% if event %}{{ event.date|date:'Y-m-d' }}{% else %}{{ prefill_date }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Start Time</label>
+                            <input type="time" name="time" class="form-control" value="{{ event.time|time:'H:i' }}" required>
+                        </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label>Date</label>
-                            <input type="date" name="date" class="form-control" value="{{ event.date|date:'Y-m-d' }}">
+                            <label>End Date (Optional)</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ event.end_date|date:'Y-m-d' }}">
                         </div>
-
                         <div class="col-md-6 mb-3">
-                            <label>Time</label>
-                            <input type="time" name="time" class="form-control" value="{{ event.time|time:'H:i' }}">
+                            <label>End Time (Optional)</label>
+                            <input type="time" name="end_time" class="form-control" value="{{ event.end_time|time:'H:i' }}">
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Additional Info</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Price</label>
+                            <input type="text" name="price" class="form-control" value="{{ event.price|default:'' }}" placeholder="e.g. $49.99 - $89.99 or Free">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Refund Policy</label>
+                            <input type="text" name="refund_policy" class="form-control" value="{{ event.refund_policy|default:'' }}" placeholder="e.g. No Refunds">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label>Category</label>
-                        <input type="text" name="category" class="form-control" value="{{ event.category|default:'' }}">
+                        <label>Categories (comma separated)</label>
+                        <input type="text" name="categories" class="form-control" value="{{ current_categories|default:'' }}" placeholder="e.g. Music, Party, Festival">
+                        <small class="text-muted">Separate multiple categories with commas.</small>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 mt-4">
                         <label>Banner Image</label>
                         <input type="file" name="banner" class="form-control">
+                        {% if event and event.banner %}
+                            <div class="mt-2 text-muted">Current image: {{ event.banner.name }}</div>
+                        {% endif %}
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="/" class="btn btn-secondary">⬅ Back</a>
-                        <button type="submit" class="btn btn-primary">
+                    <div class="d-flex justify-content-between mt-5">
+                        <a href="{% url 'event_list' %}" class="btn btn-secondary px-4">⬅ Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
                             💾 Save Event
                         </button>
                     </div>

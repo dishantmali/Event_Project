@@ -39,6 +39,33 @@
             font-weight: 600;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
+        /* Date input with placeholder overlay */
+        .date-wrapper {
+            position: relative;
+        }
+
+        .date-wrapper .date-placeholder {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            pointer-events: none;
+            font-size: 1rem;
+        }
+
+        .date-wrapper .date-placeholder.hidden {
+            display: none;
+        }
+
+        .date-wrapper input[type="date"] {
+            color: transparent;
+        }
+
+        .date-wrapper input[type="date"].has-value {
+            color: #212529;
+        }
     </style>
 </head>
 
@@ -48,11 +75,48 @@
 
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Event Management</h2>
-        <a href="{% url 'event_create' %}" class="btn btn-primary">
-            ➕ Add Event
-        </a>
+        <h2 class="fw-bold">
+            {% if is_liked_events_page %}⭐ Liked Events{% else %}Event Management{% endif %}
+        </h2>
+        <div class="d-flex gap-2 align-items-center">
+            
+            <a href="{% url 'event_create' %}" class="btn btn-primary d-flex align-items-center gap-1">
+                ➕ Add Event
+            </a>
+            <a href="{% url 'calendar' %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+                📅 Calendar View
+            </a>
+            
+            {% if user.is_authenticated %}
+            <div class="dropdown ms-2 shadow-sm rounded">
+                <button class="btn btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 28px; height: 28px; font-weight: bold; font-size: 0.85rem;">
+                        {{ user.username|make_list|first|upper }}
+                    </div>
+                    <span>Profile</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
+                    <li class="px-3 py-2 text-muted small fw-bold">Signed in as <br><span class="text-dark">{{ user.username }}</span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{% if is_liked_events_page %}{% url 'event_list' %}{% else %}{% url 'liked_events' %}{% endif %}">
+                            {% if is_liked_events_page %}⬅ Back to Events{% else %}⭐ Liked Events{% endif %}
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start">🚪 Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+        </div>
     </div>
+    
     <!-- 🔍 FILTER BAR -->
 <div class="card shadow-sm border-0 mb-4 p-3">
 
@@ -73,22 +137,28 @@
                        value="{{ request.GET.category }}">
             </div>
 
-            <!-- LOCATION -->
+            <!-- CITY -->
             <div class="col-md-2">
                 <input type="text" name="location" class="form-control"
-                       placeholder="Location"
+                       placeholder="City"
                        value="{{ request.GET.location }}">
             </div>
 
             <!-- DATE RANGE -->
             <div class="col-md-2">
-                <input type="date" name="start_date" class="form-control"
-                       value="{{ request.GET.start_date }}">
+                <div class="date-wrapper">
+                    <span class="date-placeholder">Start Date</span>
+                    <input type="date" name="start_date" class="form-control"
+                           value="{{ request.GET.start_date }}">
+                </div>
             </div>
 
             <div class="col-md-2">
-                <input type="date" name="end_date" class="form-control"
-                       value="{{ request.GET.end_date }}">
+                <div class="date-wrapper">
+                    <span class="date-placeholder">End Date</span>
+                    <input type="date" name="end_date" class="form-control"
+                           value="{{ request.GET.end_date }}">
+                </div>
             </div>
 
             <!-- SORT -->
@@ -105,7 +175,7 @@
         <!-- BUTTONS -->
         <div class="d-flex justify-content-end mt-3 gap-2">
 
-            <a href="/" class="btn btn-outline-secondary btn-sm">
+            <a href="{% if is_liked_events_page %}{% url 'liked_events' %}{% else %}{% url 'event_list' %}{% endif %}" class="btn btn-outline-secondary btn-sm">
                 Reset
             </a>
 
@@ -145,19 +215,26 @@
                 <!-- CONTENT -->
                 <div class="card-body">
 
-                    <h5 class="fw-bold">{{ event.title }}</h5>
+                    <a href="{% url 'event_detail' event.id %}" class="text-decoration-none text-dark">
+                        <h5 class="fw-bold mb-1">{{ event.title }}</h5>
+                    </a>
+                    {% if event.city %}
+                    <div class="text-muted small mb-2">
+                        📍 {{ event.city }}
+                    </div>
+                    {% endif %}
 
-                    <p class="text-muted">
-                        {{ event.description|truncatewords:12 }}
-                    </p>
+                    <div class="d-flex justify-content-between align-items-start mb-3 mt-3">
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for category in event.categories.all %}
+                                <span class="badge bg-light text-dark border">{{ category.name }}</span>
+                            {% empty %}
+                                <span class="badge bg-light text-dark border">No Category</span>
+                            {% endfor %}
+                        </div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge bg-light text-dark border">
-                            {{ event.category }}
-                        </span>
-
-                        <small class="text-muted">
-                            ⏰ {{ event.time }}
+                        <small class="text-muted ms-2 text-nowrap">
+                            ⏰ {{ event.time|time:"g:i A" }}
                         </small>
                     </div>
 
@@ -168,14 +245,46 @@
                             ✏ Edit
                         </a>
 
-                        <a href="{% url 'event_delete' event.id %}" class="btn btn-outline-danger btn-sm">
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal-{{ event.id }}">
                             ❌ Delete
-                        </a>
+                        </button>
 
                     </div>
 
                 </div>
 
+            </div>
+
+            <!-- DELETE CONFIRMATION MODAL -->
+            <div class="modal fade" id="deleteModal-{{ event.id }}" tabindex="-1"
+                 aria-labelledby="deleteModalLabel-{{ event.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="deleteModalLabel-{{ event.id }}">
+                                ⚠️ Confirm Deletion
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <p class="mb-1 fs-5">Are you sure you want to delete</p>
+                            <p class="fw-bold fs-4 text-danger">"{{ event.title }}"</p>
+                            <p class="text-muted small mb-0">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer justify-content-center border-0">
+                            <button type="button" class="btn btn-secondary px-4"
+                                    data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <a href="{% url 'event_delete' event.id %}" class="btn btn-danger px-4">
+                                🗑️ Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -190,6 +299,30 @@
     {% endif %}
 
 </div>
+
+<!-- Bootstrap JS (required for modals) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.date-wrapper input[type="date"]').forEach(function (input) {
+            var placeholder = input.parentElement.querySelector('.date-placeholder');
+
+            function toggle() {
+                if (input.value) {
+                    placeholder.classList.add('hidden');
+                    input.classList.add('has-value');
+                } else {
+                    placeholder.classList.remove('hidden');
+                    input.classList.remove('has-value');
+                }
+            }
+
+            toggle();
+            input.addEventListener('change', toggle);
+        });
+    });
+</script>
 
 </body>
 </html>

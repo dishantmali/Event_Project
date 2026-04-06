@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Calendar</title>
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .calendar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 20px 30px;
+            color: white;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .btn-add-event {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-add-event:hover {
+            background: rgba(255,255,255,0.35);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        /* Calendar Container */
+        #calendar {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        /* Compact calendar cells */
+        .fc .fc-daygrid-day {
+            min-height: 70px !important;
+        }
+
+        .fc .fc-daygrid-body-natural .fc-daygrid-day-events {
+            margin-bottom: 0;
+        }
+
+        .fc .fc-daygrid-day-frame {
+            min-height: 70px !important;
+            padding: 4px;
+        }
+
+        /* Style the day numbers */
+        .fc .fc-daygrid-day-number {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #444;
+            padding: 4px 8px;
+        }
+
+        /* Today highlight */
+        .fc .fc-day-today {
+            background: rgba(102, 126, 234, 0.08) !important;
+        }
+
+        .fc .fc-day-today .fc-daygrid-day-number {
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Past dates */
+        .fc .fc-day-past {
+            background: #fafafa;
+        }
+
+        .fc .fc-day-past .fc-daygrid-day-number {
+            color: #bbb;
+        }
+
+        /* Event pills */
+        .fc .fc-event {
+            border: none !important;
+            border-radius: 6px !important;
+            padding: 2px 6px !important;
+            font-size: 0.7rem !important;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+        }
+
+        /* Header toolbar */
+        .fc .fc-toolbar-title {
+            font-size: 1.2rem !important;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .fc .fc-button {
+            border-radius: 8px !important;
+            font-size: 0.8rem !important;
+            padding: 6px 14px !important;
+            border: none !important;
+            background: #667eea !important;
+        }
+
+        .fc .fc-button:hover {
+            background: #5a6fd6 !important;
+        }
+
+        .fc .fc-button-active {
+            background: #4c5fc0 !important;
+        }
+
+        /* Day header (Sun, Mon...) */
+        .fc .fc-col-header-cell {
+            background: #f8f9ff;
+            border: none;
+            padding: 10px 0;
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+        }
+
+        /* Cursor on clickable dates */
+        .fc .fc-day-future,
+        .fc .fc-day-today {
+            cursor: pointer;
+        }
+
+        .fc .fc-day-future:hover,
+        .fc .fc-day-today:hover {
+            background: rgba(102, 126, 234, 0.06) !important;
+        }
+
+        .fc .fc-day-past {
+            cursor: default;
+        }
+
+        /* Event popup card */
+        .event-popup {
+            position: absolute;
+            z-index: 1000;
+            width: 280px;
+            display: none;
+            border-radius: 14px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            pointer-events: none; /* Prevents blinking when mouse hovers over popup */
+        }
+
+        .event-popup img {
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+
+        .event-popup .card-body {
+            padding: 14px;
+        }
+
+        .event-popup .card-body h5 {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .event-popup .card-body p {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .popup-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        /* Past-date click notification */
+        .past-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .past-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+    <!-- HEADER -->
+    <div class="calendar-header d-flex justify-content-between align-items-center mb-4">
+        <h2>📅 Event Calendar</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'event_list' %}" class="btn btn-back">
+                ⬅ Back to Events
+            </a>
+            <a href="{% url 'event_create' %}" class="btn btn-add-event">
+                ➕ Add Event
+            </a>
+        </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="calendar"></div>
+
+</div>
+
+<!-- POPUP CARD -->
+<div id="popup" class="card event-popup">
+    <img id="popup-img" class="card-img-top" style="height:130px; object-fit:cover;">
+    
+    <div class="card-body">
+        <h5 id="popup-title" class="fw-bold"></h5>
+        <p id="popup-desc" class="text-muted small mb-1"></p>
+        <span id="popup-category" class="badge popup-badge"></span>
+        <div class="mt-2 text-muted small" id="popup-time"></div>
+    </div>
+</div>
+
+<!-- PAST-DATE TOAST -->
+<div id="past-toast" class="past-toast">
+    🚫 Cannot add events to past dates
+</div>
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let calendarEl = document.getElementById('calendar');
+    let pastToast = document.getElementById('past-toast');
+    let toastTimeout;
+
+    function showPastToast() {
+        pastToast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function () {
+            pastToast.classList.remove('show');
+        }, 2500);
+    }
+
+    // Today's date string (YYYY-MM-DD) for comparison
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let calendar = new FullCalendar.Calendar(calendarEl, {
+
+        initialView: 'dayGridMonth',
+        height: "auto",
+        dayMaxEvents: 2,
+
+        // EVENTS
+        events: {{ events|safe }},
+
+        // CLICK DATE
+        dateClick: function(info) {
+            let clickedDate = new Date(info.dateStr);
+            clickedDate.setHours(0, 0, 0, 0);
+
+            if (clickedDate < today) {
+                // Past date — show toast, do NOT navigate
+                showPastToast();
+            } else {
+                // Today or future — open add event with date pre-filled
+                window.location.href = "/create/?date=" + info.dateStr;
+            }
+        },
+
+        // HOVER ENTER
+        eventMouseEnter: function(info) {
+
+            let popup = document.getElementById("popup");
+
+            document.getElementById("popup-title").innerText = info.event.title;
+            document.getElementById("popup-desc").innerText = info.event.extendedProps.description || "";
+            document.getElementById("popup-category").innerText = info.event.extendedProps.category || "";
+            document.getElementById("popup-time").innerText = "⏰ " + (info.event.extendedProps.time || "");
+
+            let img = info.event.extendedProps.image;
+
+            if (img) {
+                document.getElementById("popup-img").src = img;
+                document.getElementById("popup-img").style.display = "block";
+            } else {
+                document.getElementById("popup-img").style.display = "none";
+            }
+
+            popup.style.display = "block";
+
+            // Smart positioning to avoid going off-screen
+            let x = info.jsEvent.pageX + 15;
+            let y = info.jsEvent.pageY + 15;
+
+            if (x + 300 > window.innerWidth) {
+                x = info.jsEvent.pageX - 300;
+            }
+
+            popup.style.top = y + "px";
+            popup.style.left = x + "px";
+        },
+
+        // HOVER LEAVE
+        eventMouseLeave: function(info) {
+            document.getElementById("popup").style.display = "none";
+        }
+
+    });
+
+    calendar.render();
+
+}); 
+</script>
+
+</body>
+</html>
