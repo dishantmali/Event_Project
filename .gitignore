@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Virtual environment (outside folder)
+../venv/
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PyCharm
+.idea/
+
+# Static files
+staticfiles/
+
+# Testing
+htmlcov/
+.coverage
+.cache
+pytest_cache/
+
+# Secrets
+*.pem
+*.key
