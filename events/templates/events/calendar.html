@@ -254,7 +254,11 @@
 
 <body>
 
-<div class="container py-4">
+{% if user.is_superuser %}
+    {% include 'events/_admin_sidebar.html' %}
+{% endif %}
+
+<div class="container py-4 {% if user.is_superuser %}admin-content-shift{% endif %}">
 
     <!-- HEADER -->
     <div class="calendar-header d-flex justify-content-between align-items-center mb-4">

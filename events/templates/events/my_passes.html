@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Passes | Eventify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        :root { --brand-primary: #9333ea; --brand-hover: #7e22ce; --brand-light: #f3e8ff; }
+
+        .page-header {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 0 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title { font-size: 1.75rem; font-weight: 700; color: #0f172a; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; margin-top: 4px; }
+
+        .btn-back-events {
+            background: var(--brand-primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-back-events:hover { background: var(--brand-hover); color: white; }
+
+        .passes-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        /* Pass Card - Ticket Style */
+        .pass-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid #f1f5f9;
+            display: flex;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .pass-card.cancelled {
+            opacity: 0.55;
+        }
+
+        .pass-left {
+            background: linear-gradient(135deg, var(--brand-primary), #6366f1);
+            color: white;
+            padding: 28px 24px;
+            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .pass-left::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: #f8fafc;
+            border-radius: 50%;
+        }
+
+        .pass-month { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+        .pass-day { font-size: 2.5rem; font-weight: 800; line-height: 1; margin: 4px 0; }
+        .pass-year { font-size: 0.8rem; opacity: 0.8; }
+
+        .pass-right {
+            padding: 24px 28px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pass-event-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .pass-detail {
+            font-size: 0.85rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .pass-detail i { color: #cbd5e1; width: 16px; text-align: center; }
+
+        .pass-id {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .pass-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge-status {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-valid { background: #dcfce7; color: #16a34a; }
+        .badge-cancelled { background: #fee2e2; color: #dc2626; }
+        .badge-used { background: #e0e7ff; color: #4f46e5; }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover { background: #fef2f2; }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .empty-state i { font-size: 3rem; color: #e2e8f0; margin-bottom: 16px; }
+        .empty-state h3 { font-weight: 600; color: #64748b; margin-bottom: 8px; }
+        .empty-state p { color: #94a3b8; margin-bottom: 24px; }
+
+        .empty-state a {
+            background: var(--brand-primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .empty-state a:hover { background: var(--brand-hover); color: white; }
+
+        /* Messages */
+        .alert-custom {
+            max-width: 900px;
+            margin: 16px auto 0 auto;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .pass-card { flex-direction: column; }
+            .pass-left { min-width: auto; flex-direction: row; gap: 8px; padding: 16px; }
+            .pass-left::after { display: none; }
+            .pass-day { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Messages -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-custom alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class="bi bi-ticket-perforated" style="color: var(--brand-primary);"></i> My Passes</h1>
+            <div class="page-subtitle">Your event reservations and tickets</div>
+        </div>
+        <a href="{% url 'event_list' %}" class="btn-back-events"><i class="bi bi-arrow-left"></i> Browse Events</a>
+    </div>
+
+    <div class="passes-grid">
+        {% for pass in passes %}
+        <div class="pass-card {% if pass.status == 'cancelled' %}cancelled{% endif %}">
+            <div class="pass-left">
+                <div class="pass-month">{{ pass.event.date|date:"M" }}</div>
+                <div class="pass-day">{{ pass.event.date|date:"d" }}</div>
+                <div class="pass-year">{{ pass.event.date|date:"Y" }}</div>
+            </div>
+            <div class="pass-right">
+                <div class="pass-actions">
+                    {% if pass.status == 'valid' %}
+                        <span class="badge-status badge-valid">Valid</span>
+                        <form method="post" action="{% url 'cancel_pass' pass.pass_id %}" class="m-0" onsubmit="return confirm('Cancel this pass?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-cancel">Cancel</button>
+                        </form>
+                    {% elif pass.status == 'cancelled' %}
+                        <span class="badge-status badge-cancelled">Cancelled</span>
+                    {% elif pass.status == 'used' %}
+                        <span class="badge-status badge-used">Used</span>
+                    {% endif %}
+                </div>
+
+                <div class="pass-event-title">{{ pass.event.title }}</div>
+                
+                <div class="pass-detail">
+                    <i class="bi bi-clock"></i> {{ pass.event.time|time:"g:i A" }}
+                </div>
+                <div class="pass-detail">
+                    <i class="bi bi-geo-alt"></i> {{ pass.event.city|default:"Location TBD" }}
+                </div>
+                <div class="pass-detail">
+                    <i class="bi bi-tag"></i> {{ pass.event.price|default:"Free" }}
+                </div>
+                <div class="pass-id">PASS ID: {{ pass.pass_id }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="bi bi-ticket-perforated d-block"></i>
+            <h3>No Passes Yet</h3>
+            <p>You haven't reserved any event passes. Browse events to get started!</p>
+            <a href="{% url 'event_list' %}">Explore Events</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

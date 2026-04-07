@@ -2,84 +2,494 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Manager - Welcome</title>
+    <title>Eventify - Discover & Create Amazing Events</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Purples */
+        :root {
+            --brand-primary: #9333ea;
+            --brand-hover: #7e22ce;
+            --brand-light: #f3e8ff;
+            --surface-light: #fdfcff;
+            --bg-gray: #f8fafc;
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.25rem 2rem;
+            background-color: white;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .navbar-brand i { color: var(--brand-primary); }
+
+        .btn-login {
+            color: #475569;
+            font-weight: 600;
+            text-decoration: none;
+            margin-right: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .btn-login:hover { color: #0f172a; }
+
+        .btn-signup {
+            background-color: var(--brand-primary);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 20px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid var(--brand-primary);
+        }
+
+        .btn-signup:hover {
+            background-color: var(--brand-hover);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background-color: var(--surface-light);
+            padding: 100px 0 120px 0;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+        }
+
+        .hero-title .highlight {
+            color: var(--brand-primary);
+            display: block;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+
+        .hero-btns .btn-primary-lg {
+            background-color: var(--brand-primary);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.2s;
+            display: inline-block;
+            margin-right: 16px;
+        }
+
+        .hero-btns .btn-primary-lg:hover { background-color: var(--brand-hover); }
+
+        .hero-btns .btn-outline-lg {
+            background-color: white;
+            color: var(--brand-primary);
+            border: 2px solid var(--brand-primary);
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .hero-btns .btn-outline-lg:hover {
+            background-color: var(--brand-light);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 0;
+            background-color: white;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            color: #64748b;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background-color: var(--brand-light);
+            padding: 32px;
+            border-radius: 16px;
+            text-align: left;
+            height: 100%;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background-color: var(--brand-primary);
+            color: white;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow: hidden;
+            font-size: 1.4rem;
+            margin-bottom: 24px;
         }
-        .hero-section {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 3rem;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            max-width: 600px;
-            width: 90%;
-            animation: fadeIn 1s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 {
+
+        .feature-title {
+            font-size: 1.15rem;
             font-weight: 700;
-            margin-bottom: 20px;
+            color: #0f172a;
+            margin-bottom: 12px;
         }
-        .btn-custom {
-            padding: 10px 30px;
+
+        .feature-desc {
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Featured Events */
+        .featured-section {
+            padding: 80px 0;
+            background-color: var(--bg-gray);
+            text-align: center;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            text-align: left;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid #f1f5f9;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-img {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+            background-color: #e2e8f0;
+        }
+
+        .event-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: var(--brand-light);
+            color: var(--brand-primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+
+        .event-title {
             font-size: 1.1rem;
-            border-radius: 50px;
-            margin: 10px;
-            transition: all 0.3s;
-            font-weight: bold;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 10px;
         }
-        .btn-primary-custom {
-            background-color: #ff6b6b;
+
+        .event-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .event-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-meta i { color: #cbd5e1; }
+
+        .event-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+        }
+
+        .btn-view-details {
+            background-color: var(--brand-primary);
             color: white;
-            border: none;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s;
         }
-        .btn-primary-custom:hover {
-            background-color: #ff5252;
-            transform: scale(1.05);
+
+        .btn-view-details:hover { background-color: var(--brand-hover); color: white; }
+
+        /* CTA Section */
+        .cta-section {
+            background-color: var(--brand-primary);
+            padding: 80px 0;
+            text-align: center;
             color: white;
         }
-        .btn-outline-custom {
-            background-color: transparent;
-            color: white;
-            border: 2px solid white;
+
+        .cta-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
         }
-        .btn-outline-custom:hover {
+
+        .cta-subtitle {
+            font-size: 1.05rem;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .btn-cta {
             background-color: white;
-            color: #764ba2;
-            transform: scale(1.05);
+            color: var(--brand-primary);
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer-brand {
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .footer-brand i { color: #c084fc; }
+
+        .footer-text {
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .footer-copy {
+            font-size: 0.8rem;
+            border-top: 1px solid #1e293b;
+            padding-top: 24px;
+            opacity: 0.7;
         }
     </style>
 </head>
 <body>
 
-    <div class="hero-section">
-        <h1>Welcome to Event Manager</h1>
-        <p class="lead mb-4">Discover, Create, and Manage your events effortlessly.</p>
-        <div>
-            <a href="{% url 'register' %}" class="btn btn-custom btn-primary-custom">Register</a>
-            <a href="{% url 'login' %}" class="btn btn-custom btn-outline-custom">Log In</a>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg border-min px-4">
+        <div class="container-fluid max-w-7xl">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-calendar2-range"></i> Eventify
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <a href="{% url 'login' %}" class="btn-login">Log In</a>
+                <a href="{% url 'register' %}" class="btn-signup">Sign Up</a>
+            </div>
         </div>
-        <div class="mt-4">
-            <a href="{% url 'event_list' %}" class="text-white text-decoration-none" style="opacity: 0.8;">Or browse events as guest &rarr;</a>
-        </div>
-    </div>
+    </nav>
 
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">
+                Discover & Create
+                <span class="highlight">Amazing Events</span>
+            </h1>
+            <p class="hero-subtitle">
+                Join thousands of event organizers and attendees. Create unforgettable experiences or discover your next adventure.
+            </p>
+            <div class="hero-btns">
+                <a href="{% url 'register' %}" class="btn-primary-lg">Get Started</a>
+                <a href="#features" class="btn-outline-lg">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose Eventify?</h2>
+            <p class="section-subtitle">Everything you need to manage and discover events</p>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-people"></i></div>
+                        <h3 class="feature-title">For Attendees</h3>
+                        <p class="feature-desc">Browse and filter thousands of events. Find exactly what you're looking for with our advanced search.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-stars"></i></div>
+                        <h3 class="feature-title">For Organizers</h3>
+                        <p class="feature-desc">Create and manage your events with ease. Full control over event details, pricing, and capacity.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                        <h3 class="feature-title">Admin Approved</h3>
+                        <p class="feature-desc">All organizers are vetted through our approval process to ensure quality and trustworthy events.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Events Section -->
+    <section class="featured-section">
+        <div class="container">
+            <h2 class="section-title">Featured Events</h2>
+            <p class="section-subtitle">Discover upcoming events</p>
+
+            <div class="row g-4 text-start">
+                {% for event in featured_events %}
+                <div class="col-md-4">
+                    <div class="event-card">
+                        {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="event-img">
+                        {% else %}
+                            <div class="event-img d-flex align-items-center justify-content-center text-muted">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="event-body">
+                            {% if event.categories.first %}
+                            <div>
+                                <span class="category-badge">{{ event.categories.first.name }}</span>
+                            </div>
+                            {% else %}
+                            <div>
+                                <span class="category-badge">General</span>
+                            </div>
+                            {% endif %}
+                            
+                            <h3 class="event-title">{{ event.title }}</h3>
+                            <p class="event-desc">{{ event.description|truncatewords:12 }}</p>
+                            
+                            <div class="event-meta">
+                                <i class="bi bi-calendar3"></i> {{ event.date|date:"m/d/Y" }}
+                            </div>
+                            <div class="event-meta">
+                                <i class="bi bi-geo-alt"></i> {{ event.city|default:"Location TBD" }}
+                            </div>
+                            
+                            <div class="event-footer">
+                                <div class="event-price">{{ event.price|default:"Free" }}</div>
+                                <a href="{% url 'login' %}?next={% url 'event_detail' event.id %}" class="btn-view-details">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-4">
+                    <p>No featured events at the moment. Check back soon!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Ready to Get Started?</h2>
+            <p class="cta-subtitle">Join Eventify today and start discovering or creating amazing events</p>
+            <a href="{% url 'register' %}" class="btn-cta">Create Free Account</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <i class="bi bi-calendar2-range"></i> Eventify
+            </div>
+            <p class="footer-text">Making event management simple and accessible for everyone</p>
+            <div class="footer-copy">
+                &copy; 2026 Eventify. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            max-width: calc(100% - 250px);
+            padding: 30px;
+        }
+
+        .page-title {
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #1e0a3c;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eeedf2;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #eeedf2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            height: 100%;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #6f7287;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-icon {
+            color: #a0a3b1;
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e0a3c;
+            margin-bottom: 5px;
+        }
+
+        .stat-subtitle {
+            font-size: 0.8rem;
+            color: #00a650;
+            font-weight: 500;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #eeedf2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            margin-top: 30px;
+        }
+
+        .activity-title {
+            font-weight: 700;
+            color: #1e0a3c;
+            margin-bottom: 25px;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 15px 0;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-action {
+            font-weight: 600;
+            color: #39364f;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .activity-desc {
+            color: #6f7287;
+            font-size: 0.85rem;
+        }
+
+        .activity-time {
+            color: #a0a3b1;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'events/_admin_sidebar.html' %}
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    
+    {% if request.GET.tab != 'requests' %}
+    <!-- OVERVIEW TAB -->
+    <h3 class="page-title">Overview</h3>
+
+    <!-- Stats Row -->
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    <span>Total Events</span>
+                    <i class="bi bi-calendar-minus stat-icon"></i>
+                </div>
+                <div class="stat-value">{{ total_events }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    <span>Pending Requests</span>
+                    <i class="bi bi-clock stat-icon"></i>
+                </div>
+                <div class="stat-value">{{ pending_requests }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    <span>Active Organizers</span>
+                    <i class="bi bi-people stat-icon"></i>
+                </div>
+                <div class="stat-value">{{ active_organizers }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    <span>Approved Events</span>
+                    <i class="bi bi-check-circle stat-icon"></i>
+                </div>
+                <div class="stat-value">{{ approved_events }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Log -->
+    <div class="activity-card">
+        <h5 class="activity-title">Recent Activity</h5>
+        {% for log in recent_activity %}
+        <div class="activity-item">
+            <div>
+                <div class="activity-action">{{ log.action }}</div>
+                <div class="activity-desc">{{ log.description }}</div>
+            </div>
+            <div class="activity-time">{{ log.created_at|timesince }} ago</div>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0">No recent activity found.</p>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- REQUESTS TAB -->
+    <h3 class="page-title">Pending Requests</h3>
+
+    <div class="activity-card mt-0 mb-4">
+        <h5 class="activity-title text-primary mb-3">🎫 Event Approval Requests</h5>
+        {% if pending_events %}
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Event Title</th>
+                    <th>Organizer</th>
+                    <th>Submitted</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evt in pending_events %}
+                <tr>
+                    <td class="fw-bold">{{ evt.title }}</td>
+                    <td>{{ evt.organizer.username|default:"N/A" }}</td>
+                    <td class="text-muted small">{{ evt.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="text-end">
+                        <form method="post" action="{% url 'approve_event' evt.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-success btn-sm px-3">✅ Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'approve_event' evt.id %}" class="d-inline ms-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">❌ Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">No pending events waiting for approval.</p>
+        {% endif %}
+    </div>
+
+    <div class="activity-card mt-0">
+        <h5 class="activity-title text-primary mb-3">👤 Organizer Account Requests</h5>
+        {% if org_requests %}
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Requested At</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in org_requests %}
+                <tr>
+                    <td class="fw-bold">{{ req.user.username }}</td>
+                    <td>{{ req.user.email }}</td>
+                    <td class="text-muted small">{{ req.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="text-end">
+                        <form method="post" action="{% url 'approve_organizer' req.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-success btn-sm px-3">✅ Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'approve_organizer' req.id %}" class="d-inline ms-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">❌ Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">No pending organizer requests.</p>
+        {% endif %}
+    </div>
+
+    {% endif %}
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

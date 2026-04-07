@@ -71,7 +71,11 @@
 
 <body>
 
-<div class="container py-5">
+{% if user.is_superuser %}
+    {% include 'events/_admin_sidebar.html' %}
+{% endif %}
+
+<div class="container py-5 {% if user.is_superuser %}admin-content-shift{% endif %}">
 
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -80,9 +84,20 @@
         </h2>
         <div class="d-flex gap-2 align-items-center">
             
+            {% if user.is_organizer or user.is_superuser %}
             <a href="{% url 'event_create' %}" class="btn btn-primary d-flex align-items-center gap-1">
                 ➕ Add Event
             </a>
+            {% else %}
+                {% if not has_pending_request %}
+                <form method="post" action="{% url 'request_organizer' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning d-flex align-items-center gap-1">🎟️ Become an Organizer</button>
+                </form>
+                {% else %}
+                <button class="btn btn-secondary" disabled>⏳ Organizer Request Pending...</button>
+                {% endif %}
+            {% endif %}
             <a href="{% url 'calendar' %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
                 📅 Calendar View
             </a>
@@ -98,9 +113,29 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
                     <li class="px-3 py-2 text-muted small fw-bold">Signed in as <br><span class="text-dark">{{ user.username }}</span></li>
                     <li><hr class="dropdown-divider"></li>
+                    {% if user.is_superuser %}
                     <li>
-                        <a class="dropdown-item" href="{% if is_liked_events_page %}{% url 'event_list' %}{% else %}{% url 'liked_events' %}{% endif %}">
+                        <a class="dropdown-item fw-bold text-primary" href="{% url 'admin_dashboard' %}">
+                            👨‍💼 Admin Dashboard
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% elif user.is_organizer %}
+                    <li>
+                        <a class="dropdown-item fw-bold text-primary" href="{% url 'organizer_dashboard' %}">
+                            🎭 Organizer Dashboard
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% endif %}
+                    <li>
+                        <a class="dropdown-item" href="{% if is_liked_events_page %}{% url 'dashboard' %}{% else %}{% url 'liked_events' %}{% endif %}">
                             {% if is_liked_events_page %}⬅ Back to Events{% else %}⭐ Liked Events{% endif %}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'my_passes' %}">
+                            🎫 My Passes
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
@@ -175,7 +210,7 @@
         <!-- BUTTONS -->
         <div class="d-flex justify-content-end mt-3 gap-2">
 
-            <a href="{% if is_liked_events_page %}{% url 'liked_events' %}{% else %}{% url 'event_list' %}{% endif %}" class="btn btn-outline-secondary btn-sm">
+            <a href="{% if is_liked_events_page %}{% url 'liked_events' %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn btn-outline-secondary btn-sm">
                 Reset
             </a>
 
@@ -241,15 +276,9 @@
                     <!-- BUTTONS -->
                     <div class="d-flex justify-content-between">
 
-                        <a href="{% url 'event_update' event.id %}" class="btn btn-outline-warning btn-sm">
-                            ✏ Edit
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary btn-sm">
+                            👁️ View Details
                         </a>
-
-                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#deleteModal-{{ event.id }}">
-                            ❌ Delete
-                        </button>
 
                     </div>
 

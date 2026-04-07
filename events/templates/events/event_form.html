@@ -56,13 +56,18 @@
                             <input type="text" name="venue_name" class="form-control" value="{{ event.venue_name|default:'' }}" placeholder="e.g. Christopher Columbus Park">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">City</label>
-                            <input type="text" name="city" class="form-control" value="{{ event.city|default:'' }}" placeholder="e.g. Boston">
+                            <label class="form-label">Location (City)</label>
+                            <input type="text" name="city" class="form-control" value="{{ event.city|default:'' }}" placeholder="e.g. Boston" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Full Address</label>
-                        <textarea name="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk, Boston, MA 02109, United States">{{ event.full_address|default:'' }}</textarea>
+                        <textarea name="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk...">{{ event.full_address|default:'' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Capacity (Max attendees)</label>
+                        <input type="number" min="1" name="capacity" class="form-control" value="{{ event.capacity|default:'' }}" placeholder="e.g. 500">
                     </div>
 
                     <h5 class="mt-4 mb-3">Date & Time</h5>

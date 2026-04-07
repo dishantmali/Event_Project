@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserve Pass - {{ event.title }} | Eventify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        :root { --brand-primary: #9333ea; --brand-hover: #7e22ce; --brand-light: #f3e8ff; }
+
+        .reserve-container {
+            max-width: 560px;
+            margin: 60px auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            border: 1px solid #f1f5f9;
+        }
+
+        .reserve-banner {
+            height: 200px;
+            background: linear-gradient(135deg, var(--brand-primary), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .reserve-banner img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .reserve-body { padding: 32px; }
+
+        .event-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .detail-row:last-of-type { border-bottom: none; }
+        .detail-row i { color: var(--brand-primary); font-size: 1.1rem; width: 20px; text-align: center; }
+
+        .price-tag {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+            margin: 24px 0;
+        }
+
+        .btn-confirm {
+            background-color: var(--brand-primary);
+            color: white;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            border: none;
+            font-size: 1.05rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-confirm:hover { background-color: var(--brand-hover); color: white; }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .btn-back:hover { color: #0f172a; }
+
+        .capacity-info {
+            background: var(--brand-light);
+            color: var(--brand-primary);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="reserve-container">
+        {% if event.banner %}
+            <div class="reserve-banner"><img src="{{ event.banner.url }}" alt="{{ event.title }}"></div>
+        {% else %}
+            <div class="reserve-banner"><i class="bi bi-ticket-perforated"></i></div>
+        {% endif %}
+
+        <div class="reserve-body">
+            <h1 class="event-name">{{ event.title }}</h1>
+
+            <div class="detail-row">
+                <i class="bi bi-calendar3"></i>
+                <span>{{ event.date|date:"F d, Y" }} at {{ event.time|time:"g:i A" }}</span>
+            </div>
+            <div class="detail-row">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ event.venue_name|default:"" }}{% if event.venue_name and event.city %}, {% endif %}{{ event.city|default:"Location TBD" }}</span>
+            </div>
+            <div class="detail-row">
+                <i class="bi bi-person"></i>
+                <span>Organized by {{ event.organizer.username|title }}</span>
+            </div>
+
+            {% if event.capacity %}
+            <div class="capacity-info">
+                <i class="bi bi-people"></i> {{ event.available_capacity }} of {{ event.capacity }} spots remaining
+            </div>
+            {% endif %}
+
+            <div class="price-tag">{{ event.price|default:"Free" }}</div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm">
+                    <i class="bi bi-ticket-perforated"></i> Confirm Reservation
+                </button>
+            </form>
+            <a href="{% url 'event_detail' event.id %}" class="btn-back">&larr; Back to Event</a>
+        </div>
+    </div>
+</body>
+</html>

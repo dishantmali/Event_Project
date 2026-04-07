@@ -259,6 +259,45 @@
             margin: 0;
             line-height: 1.4;
         }
+
+        /* Pass Button */
+        .btn-get-pass {
+            background: #9333ea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: background 0.2s;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-get-pass:hover { background: #7e22ce; color: white; }
+        .btn-get-pass.sold-out { background: #94a3b8; cursor: not-allowed; }
+        .btn-view-pass { background: #16a34a; }
+        .btn-view-pass:hover { background: #15803d; color: white; }
+
+        .capacity-bar {
+            background: #f1f5f9;
+            border-radius: 6px;
+            height: 8px;
+            margin: 12px 0 8px 0;
+            overflow: hidden;
+        }
+        .capacity-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #9333ea, #6366f1);
+            transition: width 0.3s;
+        }
+        .capacity-text {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -267,9 +306,8 @@
 <!-- NAVBAR (Optional, just a back button for now) -->
 <div class="bg-white py-3 px-4 border-bottom shadow-sm d-flex justify-content-between align-items-center">
     <h5 class="m-0 fw-bold text-primary">Event Platform</h5>
-    <div>
-        <a href="{% url 'event_list' %}" class="btn btn-outline-secondary btn-sm">⬅ Back to Browse</a>
-        <a href="{% url 'event_update' event.id %}" class="btn btn-outline-primary btn-sm ms-2">✏ Edit Event</a>
+    <div class="d-flex align-items-center">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">⬅ Back to Browse</a>
     </div>
 </div>
 
@@ -300,11 +338,24 @@
             </div>
         </div>
 
-        <div class="action-buttons d-flex align-items-center" data-event-id="{{ event.id }}" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'login' %}?next={{ request.path }}">
-            <button class="btn btn-like" onclick="toggleLike(this)">
-                <i class="bi {% if request.user in event.likes.all %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
-            </button>
-            <button class="btn btn-share"><i class="bi bi-share"></i> Share</button>
+        <div class="d-flex flex-column align-items-end gap-2">
+            <div class="action-buttons d-flex align-items-center" data-event-id="{{ event.id }}" data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-login-url="{% url 'login' %}?next={{ request.path }}">
+                {% if user != event.organizer %}
+                <button class="btn btn-like" onclick="toggleLike(this)">
+                    <i class="bi {% if request.user in event.likes.all %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                </button>
+                {% endif %}
+                <button class="btn btn-share"><i class="bi bi-share"></i> Share</button>
+            </div>
+            {% if user == event.organizer or user.is_superuser %}
+            <div class="d-flex gap-2">
+                <a href="{% url 'event_update' event.id %}" class="btn btn-outline-primary btn-sm fw-bold px-3">✏ Edit Event</a>
+                <form method="post" action="{% url 'event_delete' event.id %}" onsubmit="return confirm('Are you sure you want to delete this event?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3">❌ Delete Event</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -335,6 +386,38 @@
 
     <!-- RIGHT COLUMN -->
     <div class="right-col">
+
+        <!-- PASS RESERVATION BLOCK -->
+        <div class="sidebar-card">
+            {% if user != event.organizer and not user.is_superuser %}
+                {% if has_pass %}
+                    <a href="{% url 'my_passes' %}" class="btn-get-pass btn-view-pass">
+                        <i class="bi bi-ticket-perforated"></i> View My Pass
+                    </a>
+                {% elif event.capacity and event.available_capacity <= 0 %}
+                    <button class="btn-get-pass sold-out" disabled>
+                        Sold Out
+                    </button>
+                {% else %}
+                    <a href="{% url 'reserve_pass' event.id %}" class="btn-get-pass">
+                        <i class="bi bi-ticket-perforated"></i> Get Pass
+                    </a>
+                {% endif %}
+
+                {% if event.capacity %}
+                <div class="capacity-bar">
+                    <div class="capacity-fill" style="width: {% widthratio event.available_capacity event.capacity 100 %}%;"></div>
+                </div>
+                <div class="capacity-text">{{ event.available_capacity }} of {{ event.capacity }} spots left</div>
+                {% endif %}
+            {% endif %}
+
+            {% if user == event.organizer or user.is_superuser %}
+                <a href="{% url 'manage_attendees' event.id %}" class="btn-get-pass" style="background: #3659e3;">
+                    <i class="bi bi-people"></i> Manage Attendees ({{ event.passes.count }})
+                </a>
+            {% endif %}
+        </div>
         
         <!-- SIDEBAR INFO BLOCK -->
         <div class="sidebar-card">
@@ -368,8 +451,6 @@
             </div>
 
         </div>
-
-
 
     </div>
 
