@@ -316,7 +316,12 @@
                     by <a href="#">{{ event.organizer|default:"Organizer" }}</a>
                 </div>
                 <div class="price-text">
-                    {{ event.price|default:"Free" }}
+                    {% for tt in event.ticket_types.all %}
+                        {{ tt.name }}: ₹{{ tt.price_adult }}
+                        {% if not forloop.last %} · {% endif %}
+                    {% empty %}
+                        Free
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -377,10 +382,6 @@
                     <a href="{% url 'my_passes' %}" class="btn-get-pass btn-view-pass">
                         <i class="bi bi-ticket-perforated"></i> View My Pass
                     </a>
-                {% elif event.capacity and event.available_capacity <= 0 %}
-                    <button class="btn-get-pass sold-out" disabled>
-                        Sold Out
-                    </button>
                 {% else %}
                     <a href="{% url 'reserve_pass' event.id %}" class="btn-get-pass">
                         <i class="bi bi-ticket-perforated"></i> Get Pass
@@ -420,6 +421,26 @@
                 <span class="fw-bold" style="color: #39364f;">{{ event.city }}</span>
             </div>
             <a href="#" class="sidebar-link mt-1 d-inline-block">View Map</a>
+
+            <hr>
+
+            <h4 class="sidebar-title">Ticket Pricing</h4>
+            {% for tt in event.ticket_types.all %}
+            <div style="margin-bottom: 12px;">
+                <div class="sidebar-text fw-bold" style="color: #39364f; margin-bottom: 2px;">{{ tt.name }}</div>
+                <div class="sidebar-text" style="display: flex; gap: 16px;">
+                    <span>Adult: <strong style="color: #9333ea;">₹{{ tt.price_adult }}</strong></span>
+                    <span>Child: <strong style="color: #9333ea;">₹{{ tt.price_child }}</strong></span>
+                </div>
+                {% if tt.remaining_capacity is not None %}
+                <div class="sidebar-text" style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">
+                    {{ tt.remaining_capacity }} spots left
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="sidebar-text">Free Entry</div>
+            {% endfor %}
 
             <hr>
 
