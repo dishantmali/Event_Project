@@ -11,6 +11,7 @@ urlpatterns = [
     path('approve-event/<int:event_id>/', views.approve_event, name='approve_event'),
     path('request-organizer/', views.request_organizer, name='request_organizer'),
     
+    path('admin-events/', views.admin_event_list, name='admin_event_list'),
     path('events/', views.event_list, name='event_list'),
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='events/login.html'), name='login'),

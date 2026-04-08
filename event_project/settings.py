@@ -123,6 +123,9 @@ USE_I18N = True
 USE_TZ = True
 
 AUTH_USER_MODEL = 'events.User'
+AUTHENTICATION_BACKENDS = [
+    'events.backends.EmailOrUsernameBackend',
+]
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'landing'
 

@@ -241,10 +241,28 @@
                 <div class="pass-detail">
                     <i class="bi bi-geo-alt"></i> {{ pass.event.city|default:"Location TBD" }}
                 </div>
+                
+                {% if pass.tickets.all %}
+                <div class="mt-2 mb-2 p-3 rounded" style="background-color: #f8fafc; font-size: 0.85rem; border: 1px solid #e2e8f0;">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #475569;">Tickets Grouped under this pass_id:</div>
+                    {% for group in pass.grouped_tickets %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>• {{ group.count }} × {{ group.label }}</span>
+                        <span class="text-muted">₹{{ group.total }}</span>
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between mt-2 pt-2" style="border-top: 1px dashed #cbd5e1; font-weight: 700;">
+                        <span>Total Amount</span>
+                        <span style="color: var(--brand-primary);">₹{{ pass.total_amount }}</span>
+                    </div>
+                </div>
+                {% else %}
                 <div class="pass-detail">
                     <i class="bi bi-tag"></i> {{ pass.event.price|default:"Free" }}
                 </div>
-                <div class="pass-id">PASS ID: {{ pass.pass_id }}</div>
+                {% endif %}
+                
+                <div class="pass-id">pass_id: {{ pass.pass_id }}</div>
             </div>
         </div>
         {% empty %}

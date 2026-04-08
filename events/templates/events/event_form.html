@@ -65,10 +65,6 @@
                         <textarea name="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk...">{{ event.full_address|default:'' }}</textarea>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Capacity (Max attendees)</label>
-                        <input type="number" min="1" name="capacity" class="form-control" value="{{ event.capacity|default:'' }}" placeholder="e.g. 500">
-                    </div>
 
                     <h5 class="mt-4 mb-3">Date & Time</h5>
                     <div class="row">
@@ -94,16 +90,62 @@
                     </div>
 
                     <h5 class="mt-4 mb-3">Additional Info</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label>Price</label>
-                            <input type="text" name="price" class="form-control" value="{{ event.price|default:'' }}" placeholder="e.g. $49.99 - $89.99 or Free">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>Refund Policy</label>
-                            <input type="text" name="refund_policy" class="form-control" value="{{ event.refund_policy|default:'' }}" placeholder="e.g. No Refunds">
-                        </div>
+                    <div class="mb-3">
+                        <label>Refund Policy</label>
+                        <input type="text" name="refund_policy" class="form-control" value="{{ event.refund_policy|default:'' }}" placeholder="e.g. No Refunds">
                     </div>
+
+                    <h5 class="mt-4 mb-3">Ticket Pricing (Tiers)</h5>
+                    <div id="ticket-types-container">
+                        {% if event and event.ticket_types.all %}
+                            {% for tt in event.ticket_types.all %}
+                            <div class="row ticket-type-row mb-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label>Type Name</label>
+                                    <input type="text" name="tt_name[]" class="form-control" value="{{ tt.name }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Adult Price</label>
+                                    <input type="number" step="0.01" name="tt_adult[]" class="form-control" value="{{ tt.price_adult }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Child Price</label>
+                                    <input type="number" step="0.01" name="tt_child[]" class="form-control" value="{{ tt.price_child }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Capacity</label>
+                                    <input type="number" min="1" name="tt_capacity[]" class="form-control" value="{{ tt.available_quantity|default:'' }}" placeholder="Qty">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger remove-ticket-type w-100">Remove</button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="row ticket-type-row mb-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label>Type Name</label>
+                                    <input type="text" name="tt_name[]" class="form-control" placeholder="e.g. VIP" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Adult Price</label>
+                                    <input type="number" step="0.01" name="tt_adult[]" class="form-control" placeholder="0.00" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Child Price</label>
+                                    <input type="number" step="0.01" name="tt_child[]" class="form-control" placeholder="0.00" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Capacity</label>
+                                    <input type="number" min="1" name="tt_capacity[]" class="form-control" placeholder="Qty">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger remove-ticket-type w-100" style="display:none;">Remove</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-ticket-type">+ Add Another Ticket Type</button>
 
                     <div class="mb-3">
                         <label>Categories (comma separated)</label>
@@ -135,5 +177,47 @@
 
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('ticket-types-container');
+    const addButton = document.getElementById('add-ticket-type');
+
+    addButton.addEventListener('click', function() {
+        const rows = container.getElementsByClassName('ticket-type-row');
+        const firstRow = rows[0].cloneNode(true);
+        const inputs = firstRow.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+        
+        const removeBtn = firstRow.querySelector('.remove-ticket-type');
+        removeBtn.style.display = 'block';
+        
+        container.appendChild(firstRow);
+        updateRemoveButtons();
+    });
+
+    container.addEventListener('click', function(e) {
+        if(e.target.classList.contains('remove-ticket-type')) {
+            const rows = container.getElementsByClassName('ticket-type-row');
+            if(rows.length > 1) {
+                e.target.closest('.ticket-type-row').remove();
+            }
+            updateRemoveButtons();
+        }
+    });
+
+    function updateRemoveButtons() {
+        const rows = container.getElementsByClassName('ticket-type-row');
+        for (let i = 0; i < rows.length; i++) {
+            const btn = rows[i].querySelector('.remove-ticket-type');
+            if(rows.length === 1) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'block';
+            }
+        }
+    }
+    updateRemoveButtons();
+});
+</script>
 </body>
 </html>

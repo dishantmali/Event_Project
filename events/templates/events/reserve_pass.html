@@ -125,20 +125,93 @@
                 <span>Organized by {{ event.organizer.username|title }}</span>
             </div>
 
-            {% if event.capacity %}
-            <div class="capacity-info">
-                <i class="bi bi-people"></i> {{ event.available_capacity }} of {{ event.capacity }} spots remaining
-            </div>
+
+            {% if event.ticket_types.all %}
+                <form method="post" id="reservation-form">
+                    {% csrf_token %}
+                    <h5 class="mt-3 mb-3" style="font-weight:600; color:#0f172a;">Select Tickets</h5>
+                    {% for tt in event.ticket_types.all %}
+                        <div class="card mb-3 shadow-sm" style="border: 1px solid #f1f5f9;">
+                            <div class="card-body">
+                                <h6 class="card-title text-primary d-flex justify-content-between align-items-center" style="font-weight: 700;">
+                                    <span>{{ tt.name }}</span>
+                                    {% if tt.remaining_capacity is not None %}
+                                        {% if tt.remaining_capacity > 0 %}
+                                        <span class="badge bg-light text-secondary border" style="font-size:0.75rem;"><i class="bi bi-people"></i> {{ tt.remaining_capacity }} spots left</span>
+                                        {% else %}
+                                        <span class="badge bg-danger text-white border" style="font-size:0.75rem;">Sold Out</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </h6>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span style="font-weight: 600;">Adult</span>
+                                        <div class="text-muted small">₹{{ tt.price_adult }}</div>
+                                    </div>
+                                    <div class="input-group" style="width: 120px;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQty('adult_{{ tt.id }}', -1)">-</button>
+                                        <input type="number" name="tt_qty_adult_{{ tt.id }}" id="adult_{{ tt.id }}" class="form-control form-control-sm text-center qty-input" value="0" min="0" data-price="{{ tt.price_adult }}" readonly>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQty('adult_{{ tt.id }}', 1)">+</button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span style="font-weight: 600;">Child</span>
+                                        <div class="text-muted small">₹{{ tt.price_child }}</div>
+                                    </div>
+                                    <div class="input-group" style="width: 120px;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQty('child_{{ tt.id }}', -1)">-</button>
+                                        <input type="number" name="tt_qty_child_{{ tt.id }}" id="child_{{ tt.id }}" class="form-control form-control-sm text-center qty-input" value="0" min="0" data-price="{{ tt.price_child }}" readonly>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQty('child_{{ tt.id }}', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                        <span style="font-size: 1.1rem; font-weight: 700;">Total Amount:</span>
+                        <span style="font-size: 1.5rem; font-weight: 800; color: var(--brand-primary);">₹<span id="total-amount">0.00</span></span>
+                    </div>
+
+                    <button type="submit" class="btn-confirm" id="confirm-btn" disabled>
+                        <i class="bi bi-ticket-perforated"></i> Confirm Reservation
+                    </button>
+                </form>
+
+                <script>
+                    function updateQty(id, diff) {
+                        const input = document.getElementById(id);
+                        let val = parseInt(input.value) + diff;
+                        if (val < 0) val = 0;
+                        input.value = val;
+                        calculateTotal();
+                    }
+
+                    function calculateTotal() {
+                        let total = 0;
+                        let qty = 0;
+                        document.querySelectorAll('.qty-input').forEach(input => {
+                            let count = parseInt(input.value);
+                            let price = parseFloat(input.getAttribute('data-price'));
+                            total += count * price;
+                            qty += count;
+                        });
+                        document.getElementById('total-amount').innerText = total.toFixed(2);
+                        document.getElementById('confirm-btn').disabled = (qty === 0);
+                    }
+                </script>
+            {% else %}
+                <div class="price-tag">{{ event.price|default:"Free" }}</div>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-confirm">
+                        <i class="bi bi-ticket-perforated"></i> Confirm Reservation
+                    </button>
+                </form>
             {% endif %}
-
-            <div class="price-tag">{{ event.price|default:"Free" }}</div>
-
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn-confirm">
-                    <i class="bi bi-ticket-perforated"></i> Confirm Reservation
-                </button>
-            </form>
             <a href="{% url 'event_detail' event.id %}" class="btn-back">&larr; Back to Event</a>
         </div>
     </div>

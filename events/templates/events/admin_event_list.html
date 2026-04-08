@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Events - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            max-width: calc(100% - 250px);
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eeedf2;
+        }
+
+        .page-title {
+            font-weight: 700;
+            color: #1e0a3c;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: #6f7287;
+            font-size: 0.95rem;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            border: 1px solid #eeedf2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            color: #6f7287;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-icon {
+            color: #a0a3b1;
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e0a3c;
+            margin-bottom: 3px;
+        }
+
+        .stat-subtitle {
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+
+        .text-success-subtle { color: #2e7d32; }
+        .text-warning-subtle { color: #e65100; }
+        .text-info-subtle { color: #3659e3; }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eeedf2;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            border-radius: 8px;
+            border: 1px solid #e1e2e6;
+            font-size: 0.9rem;
+            padding: 8px 14px;
+        }
+
+        .filter-bar .form-control:focus,
+        .filter-bar .form-select:focus {
+            border-color: #3659e3;
+            box-shadow: 0 0 0 3px rgba(54, 89, 227, 0.1);
+        }
+
+        .filter-bar .btn-filter {
+            background: #3659e3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 8px 20px;
+            transition: background 0.2s;
+        }
+
+        .filter-bar .btn-filter:hover {
+            background: #2d4dc7;
+        }
+
+        .filter-bar .btn-reset {
+            background: transparent;
+            border: 1px solid #e1e2e6;
+            color: #6f7287;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: all 0.2s;
+        }
+
+        .filter-bar .btn-reset:hover {
+            background: #f8f9fa;
+            color: #39364f;
+        }
+
+        /* Events Table Container */
+        .events-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eeedf2;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .events-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .events-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #1e0a3c;
+            margin-bottom: 2px;
+        }
+
+        .events-subtitle {
+            color: #6f7287;
+            font-size: 0.9rem;
+        }
+
+        .events-count {
+            background: #f0f4ff;
+            color: #3659e3;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        /* Table */
+        .table {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #1e0a3c;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #eeedf2;
+            border-top: none;
+            padding: 12px 16px;
+        }
+
+        .table td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f6f6f6;
+            color: #39364f;
+            font-size: 0.9rem;
+        }
+
+        .table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #fafbff;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .event-main-title {
+            font-weight: 600;
+            color: #1e0a3c;
+            margin-bottom: 2px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .event-main-title:hover {
+            color: #3659e3;
+            text-decoration: underline;
+        }
+
+        .event-desc {
+            color: #6f7287;
+            font-size: 0.82rem;
+            margin-top: 2px;
+        }
+
+        .event-organizer {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: #6f7287;
+            margin-top: 4px;
+        }
+
+        .event-organizer .organizer-avatar {
+            width: 20px;
+            height: 20px;
+            background: #3659e3;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .td-icon {
+            color: #a0a3b1;
+            margin-right: 6px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-pending {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: transparent;
+            border: 1px solid #e1e2e6;
+            color: #39364f;
+            border-radius: 6px;
+            padding: 5px 9px;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: #f0f4ff;
+            color: #3659e3;
+            border-color: #c4d0f7;
+        }
+
+        .action-btn-danger:hover {
+            background: #ffebee;
+            color: #d32f2f;
+            border-color: #ffcdd2;
+        }
+
+        .action-btn-success:hover {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #c8e6c9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            color: #6f7287;
+            font-size: 0.95rem;
+        }
+
+        /* Category badges in table */
+        .category-pill {
+            background: #f0f0f3;
+            color: #39364f;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin: 1px 2px;
+        }
+
+        /* Delete Modal */
+        .modal-content {
+            border-radius: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                max-width: 100%;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% include 'events/_admin_sidebar.html' %}
+
+<div class="main-content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h3 class="page-title mb-0">All Events</h3>
+            <div class="page-subtitle">View and manage all events across the platform</div>
+        </div>
+        <a href="{% url 'event_create' %}" class="btn btn-dark d-flex align-items-center gap-2" style="border-radius: 8px; font-weight: 600; padding: 10px 20px;">
+            <i class="bi bi-plus-lg"></i> Create Event
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="GET">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted fw-bold">Search</label>
+                    <input type="text" name="q" class="form-control" placeholder="Search events..."
+                           value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-bold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-bold">City</label>
+                    <input type="text" name="location" class="form-control" placeholder="Filter by city"
+                           value="{{ request.GET.location }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted fw-bold">Sort</label>
+                    <select name="sort" class="form-select">
+                        <option value="">Default</option>
+                        <option value="latest" {% if request.GET.sort == 'latest' %}selected{% endif %}>Newest First</option>
+                        <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                        <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>Title A-Z</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2 align-items-end">
+                    <button type="submit" class="btn btn-filter">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                    <a href="{% url 'admin_event_list' %}" class="btn btn-reset">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Events Table -->
+    <div class="events-container">
+
+        <div class="events-header">
+            <div>
+                <div class="events-title">Events List</div>
+                <div class="events-subtitle">Manage all events submitted by organizers</div>
+            </div>
+            <span class="events-count">{{ events|length }} event{{ events|length|pluralize }}</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Event</th>
+                        <th>Organizer</th>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <!-- Event Info -->
+                        <td>
+                            <a href="{% url 'event_detail' event.id %}" class="event-main-title">{{ event.title }}</a>
+                            <div class="event-desc">{{ event.description|truncatewords:10 }}</div>
+                            <div class="mt-1">
+                                {% for category in event.categories.all %}
+                                    <span class="category-pill">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+
+                        <!-- Organizer -->
+                        <td>
+                            {% if event.organizer %}
+                            <div class="event-organizer">
+                                <span class="organizer-avatar">{{ event.organizer.username|make_list|first|upper }}</span>
+                                {{ event.organizer.username }}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Date & Time -->
+                        <td>
+                            <div><i class="bi bi-calendar3 td-icon"></i>{{ event.date|date:"Y-m-d" }}</div>
+                            <div class="text-muted" style="margin-left: 20px;">{{ event.time|time:"H:i" }}</div>
+                        </td>
+
+                        <!-- Location -->
+                        <td>
+                            <i class="bi bi-geo-alt td-icon"></i>{{ event.city|default:"TBD"|truncatechars:20 }}
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            {% if event.is_approved %}
+                            <span class="status-badge badge-approved">Approved</span>
+                            {% else %}
+                            <span class="status-badge badge-pending">Pending</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                {% if not event.is_approved %}
+                                <form method="post" action="{% url 'approve_event' event.id %}" class="m-0 d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="action-btn action-btn-success" title="Approve">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{% url 'manage_attendees' event.id %}" class="action-btn" title="View Attendees">
+                                    <i class="bi bi-people"></i>
+                                </a>
+                                <a href="{% url 'event_update' event.id %}" class="action-btn" title="Edit Event">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button" class="action-btn action-btn-danger" title="Delete Event"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal-{{ event.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-calendar-x d-block"></i>
+                                <p class="mb-0">No events found matching your criteria.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Delete Confirmation Modals -->
+{% for event in events %}
+<div class="modal fade" id="deleteModal-{{ event.id }}" tabindex="-1"
+     aria-labelledby="deleteModalLabel-{{ event.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title" id="deleteModalLabel-{{ event.id }}">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-1 fs-5">Are you sure you want to delete</p>
+                <p class="fw-bold fs-4 text-danger">"{{ event.title }}"</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-secondary px-4"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <a href="{% url 'event_delete' event.id %}" class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-1"></i>Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

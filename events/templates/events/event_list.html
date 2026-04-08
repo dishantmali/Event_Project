@@ -79,9 +79,24 @@
 
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">
-            {% if is_liked_events_page %}⭐ Liked Events{% else %}Event Management{% endif %}
-        </h2>
+        <div>
+            {% if user.is_authenticated %}
+                <h2 class="fw-bold mb-0">
+                    {% if user.is_superuser %}
+                        Welcome Admin , 👋
+                    {% elif user.is_organizer %}
+                        Welcome Organizer, {{ user.username }} 👋
+                    {% else %}
+                        Welcome, {{ user.username }} 👋
+                    {% endif %}
+                </h2>
+            {% endif %}
+            {% if is_liked_events_page %}
+            <h4 class="text-muted mb-1">
+                ⭐ Liked Events
+            </h4>
+            {% endif %}
+        </div>
         <div class="d-flex gap-2 align-items-center">
             
             {% if user.is_organizer or user.is_superuser %}

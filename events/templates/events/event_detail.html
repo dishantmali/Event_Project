@@ -280,24 +280,7 @@
         .btn-view-pass { background: #16a34a; }
         .btn-view-pass:hover { background: #15803d; color: white; }
 
-        .capacity-bar {
-            background: #f1f5f9;
-            border-radius: 6px;
-            height: 8px;
-            margin: 12px 0 8px 0;
-            overflow: hidden;
-        }
-        .capacity-fill {
-            height: 100%;
-            border-radius: 6px;
-            background: linear-gradient(90deg, #9333ea, #6366f1);
-            transition: width 0.3s;
-        }
-        .capacity-text {
-            font-size: 0.8rem;
-            color: #64748b;
-            text-align: center;
-        }
+
     </style>
 </head>
 
@@ -404,12 +387,7 @@
                     </a>
                 {% endif %}
 
-                {% if event.capacity %}
-                <div class="capacity-bar">
-                    <div class="capacity-fill" style="width: {% widthratio event.available_capacity event.capacity 100 %}%;"></div>
-                </div>
-                <div class="capacity-text">{{ event.available_capacity }} of {{ event.capacity }} spots left</div>
-                {% endif %}
+
             {% endif %}
 
             {% if user == event.organizer or user.is_superuser %}

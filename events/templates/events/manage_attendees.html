@@ -127,19 +127,20 @@
         <a href="{% url 'organizer_dashboard' %}" class="btn-back"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
     </div>
 
-    <div class="stats-row">
-        <div class="stat-pill">
-            <div class="stat-num">{{ passes|length }}</div>
+    <div class="stats-row" style="flex-wrap: wrap;">
+        <div class="stat-pill" style="min-width: 200px;">
+            <div class="stat-num">{{ total_attendees }}</div>
             <div class="stat-label">Total Attendees</div>
         </div>
-        <div class="stat-pill">
-            <div class="stat-num">{{ event.capacity|default:"∞" }}</div>
-            <div class="stat-label">Total Capacity</div>
+        {% for tt in event.ticket_types.all %}
+        <div class="stat-pill" style="min-width: 200px;">
+            <div class="stat-num" style="display:flex; justify-content:center; align-items:baseline; gap:5px;">
+                {{ tt.sold_count }}
+                <span style="font-size: 1rem; color: #94a3b8; font-weight: 500;">/ {% if tt.available_quantity %}{{ tt.available_quantity }}{% else %}∞{% endif %}</span>
+            </div>
+            <div class="stat-label">{{ tt.name }} Capacity</div>
         </div>
-        <div class="stat-pill">
-            <div class="stat-num">{% if event.available_capacity is not None %}{{ event.available_capacity }}{% else %}∞{% endif %}</div>
-            <div class="stat-label">Spots Left</div>
-        </div>
+        {% endfor %}
     </div>
 
     <div class="attendee-card">
@@ -159,10 +160,18 @@
                     <td>
                         <span class="user-avatar">{{ pass.user.username|first|upper }}</span>
                         {{ pass.user.username|title }}
+                        {% if pass.tickets.all %}
+                        <div class="mt-2 small text-muted">
+                            <strong>Tickets ({{ pass.tickets.count }}):</strong><br>
+                            {% for group in pass.grouped_tickets %}
+                                - {{ group.count }} × {{ group.label }}<br>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </td>
                     <td>{{ pass.user.email|default:"N/A" }}</td>
                     <td class="pass-id-cell">{{ pass.pass_id|truncatechars:13 }}</td>
-                    <td>{{ pass.purchase_date|date:"M d, Y" }}</td>
+                    <td>{{ pass.purchase_date|date:"M d, Y" }}<br><small class="text-muted">₹{{ pass.total_amount }}</small></td>
                     <td>
                         {% if pass.status == 'valid' %}
                             <span class="badge-status badge-valid">Valid</span>

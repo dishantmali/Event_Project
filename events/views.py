@@ -1,7 +1,8 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Event, Category, OrganizerRequest, User, ActivityLog, EventPass
+from .models import Event, Category, OrganizerRequest, User, ActivityLog, EventPass, TicketType, AttendeeTicket
 from django.db.models import Q
+from decimal import Decimal
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseForbidden
@@ -122,6 +123,57 @@ def request_organizer(request):
                 ActivityLog.objects.create(action="New organizer request", description=request.user.username)
     return redirect('dashboard')
 
+# --- ADMIN EVENT LIST ---
+@login_required
+def admin_event_list(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Only Admins can view this page.")
+    
+    events = Event.objects.all()
+
+    # SEARCH
+    query = request.GET.get('q')
+    if query:
+        events = events.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(city__icontains=query) |
+            Q(venue_name__icontains=query) |
+            Q(organizer__username__icontains=query)
+        )
+
+    # STATUS FILTER
+    status = request.GET.get('status')
+    if status == 'approved':
+        events = events.filter(is_approved=True)
+    elif status == 'pending':
+        events = events.filter(is_approved=False)
+
+    # LOCATION
+    location = request.GET.get('location')
+    if location:
+        events = events.filter(city__icontains=location)
+
+    # SORT
+    sort = request.GET.get('sort')
+    if sort == 'latest':
+        events = events.order_by('-date', '-time')
+    elif sort == 'oldest':
+        events = events.order_by('date', 'time')
+    elif sort == 'title':
+        events = events.order_by('title')
+    else:
+        events = events.order_by('-created_at')
+
+    context = {
+        'events': events,
+        'total_events': Event.objects.count(),
+        'approved_events': Event.objects.filter(is_approved=True).count(),
+        'pending_events': Event.objects.filter(is_approved=False).count(),
+        'active_organizers': User.objects.filter(is_organizer=True).count(),
+    }
+    return render(request, 'events/admin_event_list.html', context)
+
 # LIST (User Dashboard)
 def event_list(request):
     events = Event.objects.filter(is_approved=True)
@@ -215,12 +267,30 @@ def event_create(request):
             end_date=request.POST.get('end_date') or None,
             end_time=request.POST.get('end_time') or None,
             price=request.POST.get('price', ''),
-            capacity=request.POST.get('capacity') or None,
+            capacity=None,
             refund_policy=request.POST.get('refund_policy', ''),
             banner=request.FILES.get('banner'),
             is_approved=request.user.is_superuser
         )
         save_categories(event, request.POST.get('categories', ''))
+
+        tt_names = request.POST.getlist('tt_name[]')
+        tt_adults = request.POST.getlist('tt_adult[]')
+        tt_childs = request.POST.getlist('tt_child[]')
+        tt_caps = request.POST.getlist('tt_capacity[]')
+        for i in range(len(tt_names)):
+            if tt_names[i].strip():
+                try:
+                    cap = int(tt_caps[i]) if i < len(tt_caps) and tt_caps[i] else None
+                except ValueError:
+                    cap = None
+                TicketType.objects.create(
+                    event=event,
+                    name=tt_names[i].strip(),
+                    price_adult=tt_adults[i] or 0.00,
+                    price_child=tt_childs[i] or 0.00,
+                    available_quantity=cap
+                )
         
         if not request.user.is_superuser:
             ActivityLog.objects.create(action="New event submitted", description=event.title)
@@ -249,7 +319,7 @@ def event_update(request, pk):
         event.end_date = request.POST.get('end_date') or None
         event.end_time = request.POST.get('end_time') or None
         event.price = request.POST.get('price', '')
-        event.capacity = request.POST.get('capacity') or None
+        event.capacity = None
         event.refund_policy = request.POST.get('refund_policy', '')
 
         if request.FILES.get('banner'):
@@ -257,6 +327,29 @@ def event_update(request, pk):
         
         event.save()
         save_categories(event, request.POST.get('categories', ''))
+
+        tt_names = request.POST.getlist('tt_name[]')
+        tt_adults = request.POST.getlist('tt_adult[]')
+        tt_childs = request.POST.getlist('tt_child[]')
+        tt_caps = request.POST.getlist('tt_capacity[]')
+        
+        current_names = []
+        for i in range(len(tt_names)):
+            name = tt_names[i].strip()
+            if name:
+                current_names.append(name)
+                try:
+                    cap = int(tt_caps[i]) if i < len(tt_caps) and tt_caps[i] else None
+                except ValueError:
+                    cap = None
+                tt, created = TicketType.objects.get_or_create(event=event, name=name)
+                tt.price_adult = tt_adults[i] or 0.00
+                tt.price_child = tt_childs[i] or 0.00
+                tt.available_quantity = cap
+                tt.save()
+        
+        TicketType.objects.filter(event=event).exclude(name__in=current_names).delete()
+
         return redirect('event_detail', pk=event.pk)
 
     current_categories = ", ".join([c.name for c in event.categories.all()])
@@ -312,31 +405,77 @@ def liked_events(request):
 @login_required
 def reserve_pass(request, event_id):
     event = get_object_or_404(Event, id=event_id, is_approved=True)
-    
-    # Check if user already has a valid pass
-    existing = EventPass.objects.filter(event=event, user=request.user).first()
-    if existing and existing.status == 'valid':
-        messages.info(request, 'You already have a pass for this event.')
-        return redirect('my_passes')
-    
-    # Check capacity
-    if event.capacity and event.available_capacity <= 0:
-        messages.error(request, 'Sorry, this event is sold out!')
-        return redirect('event_detail', pk=event.id)
-    
+
     if request.method == 'POST':
-        if existing and existing.status == 'cancelled':
-            # Reactivate cancelled pass
-            existing.status = 'valid'
-            existing.save()
+        ticket_types = event.ticket_types.all()
+        if ticket_types.exists():
+            total_amount = Decimal('0.00')
+            tickets_to_create = []
+            valid_qty = 0
+            
+            for tt in ticket_types:
+                adult_qty = int(request.POST.get(f'tt_qty_adult_{tt.id}', 0))
+                child_qty = int(request.POST.get(f'tt_qty_child_{tt.id}', 0))
+                
+                valid_qty += adult_qty + child_qty
+                
+                for _ in range(adult_qty):
+                    tickets_to_create.append(AttendeeTicket(
+                        ticket_type=tt,
+                        attendee_type='adult',
+                        price_paid=tt.price_adult
+                    ))
+                    total_amount += tt.price_adult
+                
+                for _ in range(child_qty):
+                    tickets_to_create.append(AttendeeTicket(
+                        ticket_type=tt,
+                        attendee_type='child',
+                        price_paid=tt.price_child
+                    ))
+                    total_amount += tt.price_child
+                
+                if tt.available_quantity is not None:
+                    sold_for_tt = AttendeeTicket.objects.filter(
+                        ticket_type=tt, event_pass__status__in=['valid', 'used']
+                    ).count()
+                    if (sold_for_tt + adult_qty + child_qty) > tt.available_quantity:
+                        messages.error(request, f'Not enough capacity left for {tt.name}.')
+                        return redirect('reserve_pass', event_id=event.id)
+            
+            if valid_qty == 0:
+                messages.error(request, 'Please select at least one ticket.')
+                return redirect('reserve_pass', event_id=event.id)
+            
+            event_pass = EventPass.objects.create(
+                event=event,
+                user=request.user,
+                total_amount=total_amount
+            )
+            
+            for t in tickets_to_create:
+                t.event_pass = event_pass
+            
+            AttendeeTicket.objects.bulk_create(tickets_to_create)
+            
+            ActivityLog.objects.create(
+                action="Pass reserved",
+                description=f"{request.user.username} reserved {valid_qty} tickets for {event.title} (pass_id {event_pass.pass_id})"
+            )
+            messages.success(request, f'Successfully reserved {valid_qty} tickets!')
+            return redirect('my_passes')
         else:
+            if event.capacity and event.available_capacity <= 0:
+                messages.error(request, 'Sorry, this event is sold out!')
+                return redirect('event_detail', pk=event.id)
+                
             EventPass.objects.create(event=event, user=request.user)
-        ActivityLog.objects.create(
-            action="Pass reserved",
-            description=f"{request.user.username} reserved a pass for {event.title}"
-        )
-        messages.success(request, 'Pass reserved successfully!')
-        return redirect('my_passes')
+            ActivityLog.objects.create(
+                action="Pass reserved",
+                description=f"{request.user.username} reserved a pass for {event.title}"
+            )
+            messages.success(request, 'Pass reserved successfully!')
+            return redirect('my_passes')
     
     return render(request, 'events/reserve_pass.html', {'event': event})
 
@@ -364,4 +503,8 @@ def manage_attendees(request, event_id):
     if event.organizer != request.user and not request.user.is_superuser:
         return HttpResponseForbidden("You can only manage attendees for your own events.")
     passes = EventPass.objects.filter(event=event, status__in=['valid', 'used']).select_related('user').order_by('-purchase_date')
-    return render(request, 'events/manage_attendees.html', {'event': event, 'passes': passes})
+    if event.ticket_types.exists():
+        total_attendees = AttendeeTicket.objects.filter(event_pass__in=passes).count()
+    else:
+        total_attendees = passes.count()
+    return render(request, 'events/manage_attendees.html', {'event': event, 'passes': passes, 'total_attendees': total_attendees})

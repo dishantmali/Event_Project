@@ -296,7 +296,6 @@
                         <th>Event</th>
                         <th>Date & Time</th>
                         <th>Location</th>
-                        <th>Capacity</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -314,9 +313,6 @@
                         </td>
                         <td>
                             <i class="bi bi-geo-alt td-icon"></i>{{ event.city|default:"TBD"|truncatechars:25 }}
-                        </td>
-                        <td>
-                            <i class="bi bi-people td-icon"></i>{{ event.capacity|default:"N/A" }}
                         </td>
                         <td>
                             {% if event.is_approved %}
@@ -344,7 +340,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="5" class="text-center py-5 text-muted">
                             <i class="bi bi-folder2-open" style="font-size: 2rem;"></i>
                             <p class="mt-2">You haven't requested any events yet.</p>
                         </td>
