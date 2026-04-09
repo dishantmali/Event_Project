@@ -10,7 +10,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib import messages
 from .forms import CustomUserCreationForm
+from django.views.decorators.cache import never_cache
 
+@never_cache
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -31,6 +33,7 @@ def register(request):
     return render(request, 'events/register.html', {'form': form})
 
 @login_required
+@never_cache
 def dashboard(request):
     if request.user.is_superuser:
         return redirect('admin_dashboard')

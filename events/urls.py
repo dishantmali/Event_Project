@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.views.decorators.cache import never_cache
 
 urlpatterns = [
     path('', views.landing_page, name='landing'),
@@ -16,13 +17,13 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path(
         'login/',
-        auth_views.LoginView.as_view(
+        never_cache(auth_views.LoginView.as_view(
             template_name='events/login.html',
             redirect_authenticated_user=True
-        ),
+        )),
         name='login'
     ),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', never_cache(auth_views.LogoutView.as_view()), name='logout'),
     path('event/<int:pk>/', views.event_detail, name='event_detail'),
     path('create/', views.event_create, name='event_create'),
     path('update/<int:pk>/', views.event_update, name='event_update'),

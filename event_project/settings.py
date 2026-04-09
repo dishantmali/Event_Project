@@ -155,3 +155,7 @@ STORAGES = {
 }
 # The Old Way (Required by the Cloudinary library to prevent the crash)
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
