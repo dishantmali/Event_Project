@@ -14,7 +14,14 @@ urlpatterns = [
     path('admin-events/', views.admin_event_list, name='admin_event_list'),
     path('events/', views.event_list, name='event_list'),
     path('register/', views.register, name='register'),
-    path('login/', auth_views.LoginView.as_view(template_name='events/login.html'), name='login'),
+    path(
+        'login/',
+        auth_views.LoginView.as_view(
+            template_name='events/login.html',
+            redirect_authenticated_user=True
+        ),
+        name='login'
+    ),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('event/<int:pk>/', views.event_detail, name='event_detail'),
     path('create/', views.event_create, name='event_create'),
@@ -26,7 +33,9 @@ urlpatterns = [
 
     # Pass System
     path('event/<int:event_id>/reserve/', views.reserve_pass, name='reserve_pass'),
+    path('attendee-details/', views.attendee_details, name='attendee_details'),
     path('my-passes/', views.my_passes, name='my_passes'),
+    path('pass/<uuid:pass_id>/', views.pass_detail, name='pass_detail'),
     path('pass/<uuid:pass_id>/cancel/', views.cancel_pass, name='cancel_pass'),
     path('event/<int:event_id>/attendees/', views.manage_attendees, name='manage_attendees'),
 ]

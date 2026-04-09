@@ -126,6 +126,9 @@ class AttendeeTicket(models.Model):
     ticket_type = models.ForeignKey(TicketType, on_delete=models.SET_NULL, null=True)
     attendee_type = models.CharField(max_length=10, choices=ATTENDEE_CHOICES, default='adult')
     price_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    attendee_name = models.CharField(max_length=100, blank=True, default='')
+    attendee_age = models.PositiveIntegerField(null=True, blank=True)
+    attendee_email = models.EmailField(blank=True, default='')
 
     def __str__(self):
         ticket_name = self.ticket_type.name if self.ticket_type else 'N/A'

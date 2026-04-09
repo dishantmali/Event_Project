@@ -1,4 +1,6 @@
 import json
+import base64
+from io import BytesIO
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Event, Category, OrganizerRequest, User, ActivityLog, EventPass, TicketType, AttendeeTicket
 from django.db.models import Q
@@ -319,7 +321,7 @@ def event_update(request, pk):
         event.end_date = request.POST.get('end_date') or None
         event.end_time = request.POST.get('end_time') or None
         event.price = request.POST.get('price', '')
-        event.capacity = None
+        
         event.refund_policy = request.POST.get('refund_policy', '')
 
         if request.FILES.get('banner'):
@@ -409,32 +411,15 @@ def reserve_pass(request, event_id):
     if request.method == 'POST':
         ticket_types = event.ticket_types.all()
         if ticket_types.exists():
-            total_amount = Decimal('0.00')
-            tickets_to_create = []
+            ticket_selections = []
             valid_qty = 0
-            
+            total_amount = Decimal('0.00')
+
             for tt in ticket_types:
                 adult_qty = int(request.POST.get(f'tt_qty_adult_{tt.id}', 0))
                 child_qty = int(request.POST.get(f'tt_qty_child_{tt.id}', 0))
-                
                 valid_qty += adult_qty + child_qty
-                
-                for _ in range(adult_qty):
-                    tickets_to_create.append(AttendeeTicket(
-                        ticket_type=tt,
-                        attendee_type='adult',
-                        price_paid=tt.price_adult
-                    ))
-                    total_amount += tt.price_adult
-                
-                for _ in range(child_qty):
-                    tickets_to_create.append(AttendeeTicket(
-                        ticket_type=tt,
-                        attendee_type='child',
-                        price_paid=tt.price_child
-                    ))
-                    total_amount += tt.price_child
-                
+
                 if tt.available_quantity is not None:
                     sold_for_tt = AttendeeTicket.objects.filter(
                         ticket_type=tt, event_pass__status__in=['valid', 'used']
@@ -442,33 +427,30 @@ def reserve_pass(request, event_id):
                     if (sold_for_tt + adult_qty + child_qty) > tt.available_quantity:
                         messages.error(request, f'Not enough capacity left for {tt.name}.')
                         return redirect('reserve_pass', event_id=event.id)
-            
+
+                if adult_qty > 0 or child_qty > 0:
+                    ticket_selections.append({
+                        'tt_id': tt.id,
+                        'tt_name': tt.name,
+                        'adult_qty': adult_qty,
+                        'child_qty': child_qty,
+                        'price_adult': str(tt.price_adult),
+                        'price_child': str(tt.price_child),
+                    })
+                    total_amount += tt.price_adult * adult_qty
+                    total_amount += tt.price_child * child_qty
+
             if valid_qty == 0:
                 messages.error(request, 'Please select at least one ticket.')
                 return redirect('reserve_pass', event_id=event.id)
-            
-            event_pass = EventPass.objects.create(
-                event=event,
-                user=request.user,
-                total_amount=total_amount
-            )
-            
-            for t in tickets_to_create:
-                t.event_pass = event_pass
-            
-            AttendeeTicket.objects.bulk_create(tickets_to_create)
-            
-            ActivityLog.objects.create(
-                action="Pass reserved",
-                description=f"{request.user.username} reserved {valid_qty} tickets for {event.title} (pass_id {event_pass.pass_id})"
-            )
-            messages.success(request, f'Successfully reserved {valid_qty} tickets!')
-            return redirect('my_passes')
+
+            # Store in session → go to attendee details
+            request.session['ticket_selections'] = ticket_selections
+            request.session['reserve_event_id'] = event.id
+            request.session['total_amount'] = str(total_amount)
+            return redirect('attendee_details')
         else:
-            if event.capacity and event.available_capacity <= 0:
-                messages.error(request, 'Sorry, this event is sold out!')
-                return redirect('event_detail', pk=event.id)
-                
+            # Free event with no ticket types
             EventPass.objects.create(event=event, user=request.user)
             ActivityLog.objects.create(
                 action="Pass reserved",
@@ -476,8 +458,120 @@ def reserve_pass(request, event_id):
             )
             messages.success(request, 'Pass reserved successfully!')
             return redirect('my_passes')
-    
+
     return render(request, 'events/reserve_pass.html', {'event': event})
+
+
+@login_required
+def attendee_details(request):
+    ticket_selections = request.session.get('ticket_selections')
+    event_id = request.session.get('reserve_event_id')
+    total_amount = request.session.get('total_amount', '0.00')
+
+    if not ticket_selections or not event_id:
+        messages.error(request, 'Your session expired. Please select tickets again.')
+        return redirect('event_list')
+
+    event = get_object_or_404(Event, id=event_id, is_approved=True)
+
+    # Build a flat list of individual attendee slots
+    attendee_slots = []
+    for sel in ticket_selections:
+        for _ in range(sel['adult_qty']):
+            attendee_slots.append({
+                'tt_id': sel['tt_id'],
+                'tt_name': sel['tt_name'],
+                'attendee_type': 'adult',
+                'attendee_type_display': 'Adult',
+                'price': sel['price_adult'],
+            })
+        for _ in range(sel['child_qty']):
+            attendee_slots.append({
+                'tt_id': sel['tt_id'],
+                'tt_name': sel['tt_name'],
+                'attendee_type': 'child',
+                'attendee_type_display': 'Child',
+                'price': sel['price_child'],
+            })
+
+    if request.method == 'POST':
+        total = Decimal('0.00')
+        tickets_data = []
+        previous_email = ''
+
+        for i, slot in enumerate(attendee_slots):
+            name = request.POST.get(f'attendee_name_{i}', '').strip()
+            age_raw = request.POST.get(f'attendee_age_{i}', '').strip()
+            typed_email = request.POST.get(f'attendee_email_{i}', '').strip()
+
+            # For attendee 2+, user can choose to reuse previous attendee's email.
+            if i > 0 and request.POST.get(f'use_previous_email_{i}'):
+                email = previous_email
+            else:
+                email = typed_email
+
+            if i == 0 and not email:
+                email = request.user.email
+
+            if not name:
+                messages.error(request, f'Please enter a name for attendee {i + 1}.')
+                return redirect('attendee_details')
+            if not age_raw.isdigit() or int(age_raw) < 1:
+                messages.error(request, f'Please enter a valid age for attendee {i + 1}.')
+                return redirect('attendee_details')
+            if not email:
+                messages.error(request, f'Please enter an email for attendee {i + 1}.')
+                return redirect('attendee_details')
+
+            price = Decimal(slot['price'])
+            total += price
+            tickets_data.append({
+                'tt_id': slot['tt_id'],
+                'attendee_type': slot['attendee_type'],
+                'price_paid': price,
+                'attendee_name': name,
+                'attendee_age': int(age_raw),
+                'attendee_email': email,
+            })
+            previous_email = email
+
+        event_pass = EventPass.objects.create(
+            event=event,
+            user=request.user,
+            total_amount=total
+        )
+
+        for t in tickets_data:
+            tt = TicketType.objects.get(id=t['tt_id'])
+            AttendeeTicket.objects.create(
+                event_pass=event_pass,
+                ticket_type=tt,
+                attendee_type=t['attendee_type'],
+                price_paid=t['price_paid'],
+                attendee_name=t['attendee_name'],
+                attendee_age=t['attendee_age'],
+                attendee_email=t['attendee_email'],
+            )
+
+        ActivityLog.objects.create(
+            action="Pass reserved",
+            description=f"{request.user.username} reserved {len(tickets_data)} tickets for {event.title} (pass_id {event_pass.pass_id})"
+        )
+
+        # Clear session
+        request.session.pop('ticket_selections', None)
+        request.session.pop('reserve_event_id', None)
+        request.session.pop('total_amount', None)
+
+        messages.success(request, f'Successfully reserved {len(tickets_data)} tickets!')
+        return redirect('pass_detail', pass_id=event_pass.pass_id)
+
+    return render(request, 'events/attendee_details.html', {
+        'event': event,
+        'attendee_slots': attendee_slots,
+        'total_amount': total_amount,
+        'user_email': request.user.email,
+    })
 
 @login_required
 def my_passes(request):
@@ -508,3 +602,24 @@ def manage_attendees(request, event_id):
     else:
         total_attendees = passes.count()
     return render(request, 'events/manage_attendees.html', {'event': event, 'passes': passes, 'total_attendees': total_attendees})
+
+@login_required
+def pass_detail(request, pass_id):
+    event_pass = get_object_or_404(EventPass, pass_id=pass_id, user=request.user)
+    qr_payload = str(event_pass.pass_id)
+    qr_data_uri = None
+    try:
+        import qrcode
+        qr_img = qrcode.make(qr_payload)
+        buffer = BytesIO()
+        qr_img.save(buffer, format='PNG')
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        qr_data_uri = f"data:image/png;base64,{qr_base64}"
+    except Exception:
+        qr_data_uri = None
+
+    return render(request, 'events/pass_detail.html', {
+        'event_pass': event_pass,
+        'qr_data_uri': qr_data_uri,
+        'qr_payload': qr_payload,
+    })
