@@ -413,14 +413,23 @@
             <hr>
 
             <h4 class="sidebar-title">Location</h4>
-            <div class="sidebar-text fw-bold" style="color: #39364f;">
-                {{ event.venue_name|default:event.city }}
-            </div>
-            <div class="sidebar-text">
-                {{ event.full_address|linebreaksbr }}<br>
-                <span class="fw-bold" style="color: #39364f;">{{ event.city }}</span>
-            </div>
-            <a href="#" class="sidebar-link mt-1 d-inline-block">View Map</a>
+            {% if event.is_online %}
+                <div class="sidebar-text fw-bold" style="color: #39364f;">
+                    Online Event
+                </div>
+                <div class="sidebar-text">
+                    Link provided in your ticket after purchase.
+                </div>
+            {% else %}
+                <div class="sidebar-text fw-bold" style="color: #39364f;">
+                    {{ event.venue_name|default:event.city }}
+                </div>
+                <div class="sidebar-text">
+                    {{ event.full_address|linebreaksbr }}<br>
+                    <span class="fw-bold" style="color: #39364f;">{{ event.city }}</span>
+                </div>
+                <a href="#" class="sidebar-link mt-1 d-inline-block">View Map</a>
+            {% endif %}
 
             <hr>
 

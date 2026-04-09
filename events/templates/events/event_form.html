@@ -50,19 +50,32 @@
                     </div>
 
                     <h5 class="mt-4 mb-3">Location Details</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Venue Name</label>
-                            <input type="text" name="venue_name" class="form-control" value="{{ event.venue_name|default:'' }}" placeholder="e.g. Christopher Columbus Park">
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_online" name="is_online" {% if event.is_online %}checked{% endif %}>
+                        <label class="form-check-label" for="is_online">This is an online event</label>
+                    </div>
+
+                    <div id="location-fields">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Venue Name</label>
+                                <input type="text" name="venue_name" id="venue_name" class="form-control" value="{{ event.venue_name|default:'' }}" placeholder="e.g. Christopher Columbus Park">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Location (City)</label>
+                                <input type="text" name="city" id="city" class="form-control" value="{{ event.city|default:'' }}" placeholder="e.g. Boston" required>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Location (City)</label>
-                            <input type="text" name="city" class="form-control" value="{{ event.city|default:'' }}" placeholder="e.g. Boston" required>
+                        <div class="mb-3">
+                            <label class="form-label">Full Address</label>
+                            <textarea name="full_address" id="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk...">{{ event.full_address|default:'' }}</textarea>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Full Address</label>
-                        <textarea name="full_address" class="form-control" rows="2" placeholder="Boston Harborwalk...">{{ event.full_address|default:'' }}</textarea>
+
+                    <div id="online-fields" class="mb-3" style="display: none;">
+                        <label class="form-label">Joining Link</label>
+                        <input type="url" name="joining_link" id="joining_link" class="form-control" value="{{ event.joining_link|default:'' }}" placeholder="https://zoom.us/j/...">
                     </div>
                     
 
@@ -179,6 +192,31 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const isOnlineCheckbox = document.getElementById('is_online');
+    const locationFields = document.getElementById('location-fields');
+    const onlineFields = document.getElementById('online-fields');
+    const cityInput = document.getElementById('city');
+    const joiningLinkInput = document.getElementById('joining_link');
+
+    function toggleOnlineFields() {
+        if (isOnlineCheckbox.checked) {
+            locationFields.style.display = 'none';
+            onlineFields.style.display = 'block';
+            cityInput.required = false;
+            joiningLinkInput.required = true;
+        } else {
+            locationFields.style.display = 'block';
+            onlineFields.style.display = 'none';
+            cityInput.required = true;
+            joiningLinkInput.required = false;
+        }
+    }
+
+    if(isOnlineCheckbox) {
+        isOnlineCheckbox.addEventListener('change', toggleOnlineFields);
+        toggleOnlineFields(); // initial state
+    }
+
     const container = document.getElementById('ticket-types-container');
     const addButton = document.getElementById('add-ticket-type');
 

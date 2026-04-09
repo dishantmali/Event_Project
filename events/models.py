@@ -23,6 +23,8 @@ class Category(models.Model):
 class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
+    is_online = models.BooleanField(default=False)
+    joining_link = models.URLField(max_length=500, null=True, blank=True)
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events', null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     venue_name = models.CharField(max_length=200, null=True, blank=True)

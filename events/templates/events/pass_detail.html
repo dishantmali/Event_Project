@@ -110,7 +110,13 @@
                 </div>
                 <div class="meta-box">
                     <div class="meta-label">Location</div>
-                    <div class="meta-value">{{ event_pass.event.venue_name|default:event_pass.event.city }}</div>
+                    <div class="meta-value">
+                        {% if event_pass.event.is_online %}
+                            Online Event
+                        {% else %}
+                            {{ event_pass.event.venue_name|default:event_pass.event.city }}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -127,6 +133,16 @@
                     Show this QR at entry for verification.
                 </div>
             </div>
+
+            {% if event_pass.event.is_online and event_pass.event.joining_link %}
+            <h2 class="section-title">Online Meeting Link</h2>
+            <div class="qr-wrap" style="align-items: flex-start; flex-direction: column; gap: 8px;">
+                <div class="meta-label">Click below to join the event stream or meeting</div>
+                <a href="{{ event_pass.event.joining_link }}" class="btn btn-primary" target="_blank">
+                    <i class="bi bi-box-arrow-up-right"></i> Join Online Event
+                </a>
+            </div>
+            {% endif %}
 
             <h2 class="section-title">Attendee Tickets</h2>
             <div class="ticket-table-wrap">

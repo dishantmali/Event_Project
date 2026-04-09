@@ -260,13 +260,21 @@ def event_create(request):
         return HttpResponseForbidden("Only Organizers can create events.")
         
     if request.method == 'POST':
+        is_online = request.POST.get('is_online') == 'on'
+        city = 'Online' if is_online else request.POST.get('city', '')
+        venue_name = '' if is_online else request.POST.get('venue_name', '')
+        full_address = '' if is_online else request.POST.get('full_address', '')
+        joining_link = request.POST.get('joining_link', '') if is_online else ''
+
         event = Event.objects.create(
             title=request.POST['title'],
             description=request.POST.get('description', ''),
+            is_online=is_online,
+            joining_link=joining_link,
             organizer=request.user, # Assign correct user
-            city=request.POST.get('city', ''),
-            venue_name=request.POST.get('venue_name', ''),
-            full_address=request.POST.get('full_address', ''),
+            city=city,
+            venue_name=venue_name,
+            full_address=full_address,
             date=request.POST['date'],
             time=request.POST['time'],
             end_date=request.POST.get('end_date') or None,
@@ -314,11 +322,15 @@ def event_update(request, pk):
         return HttpResponseForbidden("You can only edit your own events.")
 
     if request.method == 'POST':
+        is_online = request.POST.get('is_online') == 'on'
+        event.is_online = is_online
+        event.joining_link = request.POST.get('joining_link', '') if is_online else ''
+        
         event.title = request.POST['title']
         event.description = request.POST.get('description', '')
-        event.city = request.POST.get('city', '')
-        event.venue_name = request.POST.get('venue_name', '')
-        event.full_address = request.POST.get('full_address', '')
+        event.city = 'Online' if is_online else request.POST.get('city', '')
+        event.venue_name = '' if is_online else request.POST.get('venue_name', '')
+        event.full_address = '' if is_online else request.POST.get('full_address', '')
         event.date = request.POST['date']
         event.time = request.POST['time']
         event.end_date = request.POST.get('end_date') or None
